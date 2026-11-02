@@ -1,0 +1,100 @@
+{
+  "info": {
+    "name": "Spring Security Part 2 - 회원가입",
+    "description": "5주차 교안 Part 2-11 회원가입 API 검증용 컬렉션",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 사자 회원가입 - 201",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"lion@likelion.com\",\n  \"password\": \"password1\",\n  \"nickname\": \"사자\"\n}"
+        },
+        "url": "{{baseUrl}}/api/auth/signup"
+      }
+    },
+    {
+      "name": "2. 호랑이 회원가입 - 201",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"tiger@likelion.com\",\n  \"password\": \"password1\",\n  \"nickname\": \"호랑이\"\n}"
+        },
+        "url": "{{baseUrl}}/api/auth/signup"
+      }
+    },
+    {
+      "name": "3. 이메일 중복 - 409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"lion@likelion.com\",\n  \"password\": \"password1\",\n  \"nickname\": \"다른사자\"\n}"
+        },
+        "url": "{{baseUrl}}/api/auth/signup"
+      }
+    },
+    {
+      "name": "4. 이메일 형식 오류 - 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"이메일아님\",\n  \"password\": \"password1\",\n  \"nickname\": \"사자\"\n}"
+        },
+        "url": "{{baseUrl}}/api/auth/signup"
+      }
+    },
+    {
+      "name": "5. 비밀번호 길이 오류 - 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"short@likelion.com\",\n  \"password\": \"123\",\n  \"nickname\": \"짧음\"\n}"
+        },
+        "url": "{{baseUrl}}/api/auth/signup"
+      }
+    }
+  ]
+}

@@ -1,0 +1,368 @@
+{
+ "info": {
+  "name": "Spring Security JWT Full",
+  "description": "5주차 전체 흐름 + 5주차 과제(댓글 작성자 검사, 내 정보·내 글) 검증용입니다. 위에서 아래 순서대로 실행하세요. 같은 DB 에 두 번째 실행하면 1·3번 회원가입은 409(이미 가입됨)가 정상입니다.",
+  "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+ },
+ "variable": [
+  {
+   "key": "baseUrl",
+   "value": "http://localhost:8080"
+  },
+  {
+   "key": "accessA",
+   "value": ""
+  },
+  {
+   "key": "refreshA",
+   "value": ""
+  },
+  {
+   "key": "accessB",
+   "value": ""
+  },
+  {
+   "key": "postId",
+   "value": ""
+  },
+  {
+   "key": "commentId",
+   "value": ""
+  }
+ ],
+ "item": [
+  {
+   "name": "1. A 회원가입",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\n  \"email\": \"lion@likelion.com\",\n  \"password\": \"password1\",\n  \"nickname\": \"사자\"\n}"
+    },
+    "url": "{{baseUrl}}/api/auth/signup"
+   }
+  },
+  {
+   "name": "2. A 로그인",
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "const body = pm.response.json();",
+       "pm.collectionVariables.set('accessA', body.accessToken);",
+       "pm.collectionVariables.set('refreshA', body.refreshToken);"
+      ]
+     }
+    }
+   ],
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\n  \"email\": \"lion@likelion.com\",\n  \"password\": \"password1\"\n}"
+    },
+    "url": "{{baseUrl}}/api/auth/login"
+   }
+  },
+  {
+   "name": "3. B 회원가입",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\n  \"email\": \"tiger@likelion.com\",\n  \"password\": \"password1\",\n  \"nickname\": \"호랑이\"\n}"
+    },
+    "url": "{{baseUrl}}/api/auth/signup"
+   }
+  },
+  {
+   "name": "4. B 로그인",
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "const body = pm.response.json();",
+       "pm.collectionVariables.set('accessB', body.accessToken);"
+      ]
+     }
+    }
+   ],
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\n  \"email\": \"tiger@likelion.com\",\n  \"password\": \"password1\"\n}"
+    },
+    "url": "{{baseUrl}}/api/auth/login"
+   }
+  },
+  {
+   "name": "5. A 토큰으로 게시글 작성",
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "const body = pm.response.json();",
+       "pm.collectionVariables.set('postId', body.id);"
+      ]
+     }
+    }
+   ],
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Authorization",
+      "value": "Bearer {{accessA}}"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\n  \"title\": \"사자의 글\",\n  \"content\": \"Spring Security 테스트\"\n}"
+    },
+    "url": "{{baseUrl}}/api/posts"
+   }
+  },
+  {
+   "name": "6. 토큰 없이 게시글 조회 - 200",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/posts/{{postId}}"
+   }
+  },
+  {
+   "name": "7. B가 A 게시글 수정 - 403",
+   "request": {
+    "method": "PUT",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Authorization",
+      "value": "Bearer {{accessB}}"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\n  \"title\": \"호랑이가 고침\",\n  \"content\": \"권한이 없어야 합니다\"\n}"
+    },
+    "url": "{{baseUrl}}/api/posts/{{postId}}"
+   }
+  },
+  {
+   "name": "8. 토큰 없이 게시글 삭제 - 401",
+   "request": {
+    "method": "DELETE",
+    "url": "{{baseUrl}}/api/posts/{{postId}}"
+   }
+  },
+  {
+   "name": "9. B가 A 게시글에 댓글 작성 - 201",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Authorization",
+      "value": "Bearer {{accessB}}"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\n  \"content\": \"잘 읽었습니다\"\n}"
+    },
+    "url": "{{baseUrl}}/api/posts/{{postId}}/comments"
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "const body = pm.response.json();",
+       "pm.collectionVariables.set('commentId', body.id);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "10. A가 B 댓글 수정 - 403 (5주차 과제)",
+   "request": {
+    "method": "PUT",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Authorization",
+      "value": "Bearer {{accessA}}"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\n  \"content\": \"남의 댓글 고치기\"\n}"
+    },
+    "url": "{{baseUrl}}/api/posts/{{postId}}/comments/{{commentId}}"
+   }
+  },
+  {
+   "name": "11. 토큰 없이 댓글 삭제 - 401 (5주차 과제)",
+   "request": {
+    "method": "DELETE",
+    "header": [],
+    "url": "{{baseUrl}}/api/posts/{{postId}}/comments/{{commentId}}"
+   }
+  },
+  {
+   "name": "12. B가 자기 댓글 수정 - 200 (5주차 과제)",
+   "request": {
+    "method": "PUT",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Authorization",
+      "value": "Bearer {{accessB}}"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\n  \"content\": \"잘 읽었습니다 (수정)\"\n}"
+    },
+    "url": "{{baseUrl}}/api/posts/{{postId}}/comments/{{commentId}}"
+   }
+  },
+  {
+   "name": "13. A 내 정보 - 200 (5주차 선택과제)",
+   "request": {
+    "method": "GET",
+    "header": [
+     {
+      "key": "Authorization",
+      "value": "Bearer {{accessA}}"
+     }
+    ],
+    "url": "{{baseUrl}}/api/users/me"
+   }
+  },
+  {
+   "name": "14. A 내 글 목록 - 200 (5주차 선택과제)",
+   "request": {
+    "method": "GET",
+    "header": [
+     {
+      "key": "Authorization",
+      "value": "Bearer {{accessA}}"
+     }
+    ],
+    "url": "{{baseUrl}}/api/posts/my"
+   }
+  },
+  {
+   "name": "15. 토큰 없이 내 글 목록 - 401 (5주차 선택과제)",
+   "request": {
+    "method": "GET",
+    "header": [],
+    "url": "{{baseUrl}}/api/posts/my"
+   }
+  },
+  {
+   "name": "16. A Refresh Token 재발급",
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "const body = pm.response.json();",
+       "pm.collectionVariables.set('accessA', body.accessToken);",
+       "pm.collectionVariables.set('refreshA', body.refreshToken);"
+      ]
+     }
+    }
+   ],
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\n  \"refreshToken\": \"{{refreshA}}\"\n}"
+    },
+    "url": "{{baseUrl}}/api/auth/reissue"
+   }
+  },
+  {
+   "name": "17. A 로그아웃 - 204",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Authorization",
+      "value": "Bearer {{accessA}}"
+     }
+    ],
+    "url": "{{baseUrl}}/api/auth/logout"
+   }
+  },
+  {
+   "name": "18. 로그아웃한 Refresh 재사용 - 401",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\n  \"refreshToken\": \"{{refreshA}}\"\n}"
+    },
+    "url": "{{baseUrl}}/api/auth/reissue"
+   }
+  }
+ ]
+}
