@@ -1,0 +1,35 @@
+name: Spring Boot CI/CD
+
+on:
+  push:
+    branches: [ "main" ]        # main 브랜치에 push되면 실행
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest      # 깃허브가 깨끗한 우분투(x86_64)를 잠깐 빌려줌
+
+    steps:
+      # 1. 내 코드 내려받기
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      # 2. AWS 로그인 (GitHub Secrets 의 액세스 키 사용)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      # 3. ECR 로그인
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 4. 도커 이미지 빌드해서 ECR에 올리기
+      - name: Build and push image to ECR
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/likelion-spring-app:latest
