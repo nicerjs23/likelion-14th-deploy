@@ -33,3 +33,42 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.login-ecr.outputs.registry }}/likelion-spring-app:latest
+
+      # 5. EC2에 접속해서 새 이미지로 교체
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            export PATH=$PATH:/snap/bin   # aws 를 snap 으로 설치했기 때문
+            REGISTRY=${{ steps.login-ecr.outputs.registry }}
+            IMAGE=$REGISTRY/likelion-spring-app:latest
+
+            # ECR 로그인 (IAM 역할 덕분에 키 불필요!)
+            aws ecr get-login-password --region ap-northeast-2 \
+              | docker login --username AWS --password-stdin $REGISTRY
+
+            # 최신 이미지 받기
+            docker pull $IMAGE
+
+            # 기존 컨테이너 정리 (없어도 에러 안 나게 || true)
+            docker stop likelion-app || true
+            docker rm likelion-app || true
+
+            # 새 컨테이너 실행
+            docker run -d \
+              --name likelion-app \
+              --restart unless-stopped \
+              --env-file /home/ubuntu/app.env \
+              -p 8080:8080 \
+              $IMAGE
+
+            # 안 쓰는 이미지 정리 (디스크 확보!)
+            docker image prune -af
+
+            # 로그 확인
+            echo "===== Application Logs ====="
+            sleep 5
+            docker logs --tail 30 likelion-app
