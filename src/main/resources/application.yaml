@@ -4,8 +4,8 @@ spring:
     name: spring-deploy-v1
 
   datasource:
-    url: jdbc:mysql://localhost:3306/likelion_blog
-    username: likelion
+    url: ${DB_URL:jdbc:mysql://localhost:3306/likelion_blog}
+    username: ${DB_USERNAME:likelion}
     password: ${DB_PASSWORD} # 환경변수로 설정 (3주차)
 
   jpa:

@@ -32,6 +32,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/signup",
                                          "/api/auth/login",
                                          "/api/auth/reissue",
+                                         "/api/health",
                                          "/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/my").authenticated()   // 5주차 선택 과제 — 구체적인 규칙 먼저!
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
